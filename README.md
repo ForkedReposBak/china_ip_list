@@ -7,5 +7,4 @@
 每小时更新一次
 
 # LICENSE
-MIT
-
+GPLv3
