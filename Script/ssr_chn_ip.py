@@ -28,7 +28,7 @@ def convert_to_seg(ip):
 
 
 if __name__ == '__main__':
-    read_file_name = '/root/china_ip_list/china_ip_list'
+    read_file_name = '/root/china_ip_list/china_ipv4_list'
     write_file_name = '/root/china_ip_list/SSR/chn_ip.txt'
 
     chn_ip_list_file = []
