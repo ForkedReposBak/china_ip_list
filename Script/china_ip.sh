@@ -19,22 +19,8 @@ downloadOriginIPList() {
 }
 
 handelChinaIPv4List() {
-	# APNIC
-	cat apnic | grep ipv4 | grep CN | awk -F\| '{printf("%s/%d\n", $4, 32-log($5)/log(2))}' >>apnic_1
-	echo -e "\n" >>apnic_1
-
-	# IPIP
-	echo -e "\n" >>ipip
-
-	# 合并 & 去重
-	cat apnic_1 ipip | sort | uniq >apnic_and_ipip_1
-
-	# 去空行
-	grep -v '^$' apnic_and_ipip_1 >apnic_and_ipip_2
-
-	# 排序
-	sort -t "." -k1n,1 -k2n,2 -k3n,3 -k4n,4 apnic_and_ipip_2 >china_ipv4_list
-
+	echo -e "" >>ipip
+	mv ipip china_ipv4_list
 	cp china_ipv4_list $ROOT_PATH
 }
 
@@ -55,12 +41,12 @@ handelPcapDNSProxyRules() {
 	echo -e "[Local Routing]\n## China mainland routing blocks\n## Sources: https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest" >Pcap_DNSProxy_Routing.txt
 	echo -n "## Last update: " >>Pcap_DNSProxy_Routing.txt
 	echo $CurrentDate >>Pcap_DNSProxy_Routing.txt
-	echo -e "\n" >>Pcap_DNSProxy_Routing.txt
+	echo -e "" >>Pcap_DNSProxy_Routing.txt
 
 	# IPv4
 	echo "## IPv4" >>Pcap_DNSProxy_Routing.txt
 	cat china_ipv4_list >>Pcap_DNSProxy_Routing.txt
-	echo "\n" >>Pcap_DNSProxy_Routing.txt
+	echo -e "" >>Pcap_DNSProxy_Routing.txt
 
 	# IPv6
 	echo "## IPv6" >>Pcap_DNSProxy_Routing.txt
