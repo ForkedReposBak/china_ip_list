@@ -122,12 +122,21 @@ commit() {
 }
 
 downloadOriginIPList
+wait
 handelChinaIPv4List
+wait
 handelChinaIPv6List
+wait
 handelChinaIPv4IPv6List
+wait
 handelPcapDNSProxyRules
+wait
 handelSurgeRules
+wait
 handelACLRules
+wait
 handelSSRRules
+wait
 cleanTempFile
+wait
 commit
