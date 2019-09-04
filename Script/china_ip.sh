@@ -10,6 +10,16 @@ SCRIPT_PATH="/root/china_ip_list/Script"
 
 CurrentDate=$(date +%Y-%m-%d)
 
+downloadOriginIPList() {
+	mkdir $TEMP_FILE_PATH
+	cd $TEMP_FILE_PATH
+
+	wget -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest >$TEMP_FILE_PATH'apnic.log' 2>&1 &
+
+	wget -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt >$TEMP_FILE_PATH'ipip.log' 2>&1 &
+
+}
+
 handelChinaIPv4List() {
 	echo -e "" >>ipip
 	mv ipip china_ipv4_list
@@ -113,22 +123,24 @@ commit() {
 	git push origin master
 }
 
-downloadOriginIPList() {
-	mkdir $TEMP_FILE_PATH
-	cd $TEMP_FILE_PATH
-
-	wget -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest
-	wget -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt
-
-	handelChinaIPv4List
-	handelChinaIPv6List
-	handelChinaIPv4IPv6List
-	handelPcapDNSProxyRules
-	handelSurgeRules
-	handelACLRules
-	handelSSRRules
-	cleanTempFile
-	commit
-}
-
 downloadOriginIPList
+
+while ((1)); do
+	apnicIsDownDone=$(cat apnic.log | grep "saved" | wc -l)
+	ipipIsDownDone=$(cat ipip.log | grep "saved" | wc -l)
+	if [ $apnicIsDownDone == 1 ] && [ $ipipIsDownDone == 1 ]; then
+		echo -e "ip files download done."
+		break
+	fi
+	sleep 1
+done
+
+handelChinaIPv4List
+handelChinaIPv6List
+handelChinaIPv4IPv6List
+handelPcapDNSProxyRules
+handelSurgeRules
+handelACLRules
+handelSSRRules
+cleanTempFile
+commit
