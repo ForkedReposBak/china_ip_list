@@ -11,35 +11,66 @@ SCRIPT_PATH="/root/china_ip_list/Script"
 CurrentDate=$(date +%Y-%m-%d)
 
 downloadOriginIPList() {
+	echo "exec downloadOriginIPList."
+
 	mkdir $TEMP_FILE_PATH
 	cd $TEMP_FILE_PATH
 
-	wget -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest >$TEMP_FILE_PATH'apnic.log' 2>&1 &
+	wget -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest >$TEMP_FILE_PATH'apnic.log' 2>&1
 
-	wget -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt >$TEMP_FILE_PATH'ipip.log' 2>&1 &
+	wget -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt >$TEMP_FILE_PATH'ipip.log' 2>&1
 
+	while ((1)); do
+		apnicIsDownDone=$(cat apnic.log | grep "saved" | wc -l)
+		ipipIsDownDone=$(cat ipip.log | grep "saved" | wc -l)
+		if [ $apnicIsDownDone == 1 ] && [ $ipipIsDownDone == 1 ]; then
+			echo -e "ip files download done."
+			break
+		fi
+		sleep 1
+	done
+
+	sleep 1
+	handelChinaIPv4List
 }
 
 handelChinaIPv4List() {
+	echo "exec handelChinaIPv4List."
+
 	echo -e "" >>ipip
 	mv ipip china_ipv4_list
 	cp china_ipv4_list $ROOT_PATH
+
+	sleep 1
+	handelChinaIPv6List
 }
 
 handelChinaIPv6List() {
+	echo "exec handelChinaIPv6List."
+
 	cat apnic | grep ipv6 | grep CN | awk -F\| '{printf("%s/%d\n", $4, $5)}' >china_ipv6_list
 
 	cp china_ipv6_list $ROOT_PATH
+
+	sleep 1
+	handelChinaIPv4IPv6List
 }
 
 handelChinaIPv4IPv6List() {
+	echo "exec handelChinaIPv4IPv6List."
+
 	cat china_ipv4_list >china_ipv4_ipv6_list
 	cat china_ipv6_list >>china_ipv4_ipv6_list
 
 	cp china_ipv4_ipv6_list $ROOT_PATH
+
+	sleep 1
+	handelPcapDNSProxyRules
 }
 
 handelPcapDNSProxyRules() {
+	echo "exec handelPcapDNSProxyRules."
+
 	echo -e "[Local Routing]\n## China mainland routing blocks\n## Sources: https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest" >Pcap_DNSProxy_Routing.txt
 	echo -n "## Last update: " >>Pcap_DNSProxy_Routing.txt
 	echo $CurrentDate >>Pcap_DNSProxy_Routing.txt
@@ -57,9 +88,14 @@ handelPcapDNSProxyRules() {
 	mv Pcap_DNSProxy_Routing.txt Routing.txt
 
 	mv Routing.txt $PCAP_DNSPROXY_PATH
+
+	sleep 1
+	handelSurgeRules
 }
 
 handelSurgeRules() {
+	echo "exec handelSurgeRules."
+
 	echo -e "// China IP" >surge_rules.txt
 	echo -n "// Last update: " >>surge_rules.txt
 	echo $CurrentDate >>surge_rules.txt
@@ -84,9 +120,14 @@ handelSurgeRules() {
 	sed 's/^/IP-CIDR6,/g' china_ipv6_list >surge_ipv6_rules_set.list
 
 	mv Rules.conf surge_ipv4_rules_set.list surge_ipv6_rules_set.list $SURGE_PATH
+
+	sleep 1
+	handelACLRules
 }
 
 handelACLRules() {
+	echo "exec handelACLRules."
+
 	echo -n "# Last update: " >acl_rules.txt
 	echo $CurrentDate >>acl_rules.txt
 	echo -e "[proxy_all]\n" >>acl_rules.txt
@@ -105,42 +146,35 @@ handelACLRules() {
 	mv acl_rules.txt china_ip_list.acl
 
 	mv china_ip_list.acl $ACL_PATH
+
+	sleep 1
+	handelSSRRules
 }
 
 handelSSRRules() {
+	echo "exec handelSSRRules."
+
 	cd $SCRIPT_PATH
 	python ssr_chn_ip.py
+
+	sleep 1
+	cleanTempFile
 }
 
 cleanTempFile() {
+	echo "exec cleanTempFile."
+
 	cd $ROOT_PATH
 	rm -rf $TEMP_FILE_PATH
+
+	sleep 1
+	commit
 }
 
 commit() {
-	git add --all .
+	git add --all
 	git commit -m "update"
 	git push origin master
 }
 
 downloadOriginIPList
-
-while ((1)); do
-	apnicIsDownDone=$(cat apnic.log | grep "saved" | wc -l)
-	ipipIsDownDone=$(cat ipip.log | grep "saved" | wc -l)
-	if [ $apnicIsDownDone == 1 ] && [ $ipipIsDownDone == 1 ]; then
-		echo -e "ip files download done."
-		break
-	fi
-	sleep 1
-done
-
-handelChinaIPv4List
-handelChinaIPv6List
-handelChinaIPv4IPv6List
-handelPcapDNSProxyRules
-handelSurgeRules
-handelACLRules
-handelSSRRules
-cleanTempFile
-commit
