@@ -1,12 +1,12 @@
 #!/bin/bash
 
-ROOT_PATH="/root/china_ip_list/"
-TEMP_FILE_PATH="/root/china_ip_list/temp/"
-SURGE_PATH="/root/china_ip_list/Surge/"
-SSR_PATH="/root/china_ip_list/SSR/"
-ACL_PATH="/root/china_ip_list/ACL/"
-PCAP_DNSPROXY_PATH="/root/china_ip_list/Pcap_DNSProxy/"
-SCRIPT_PATH="/root/china_ip_list/Script"
+ROOT_PATH="/home/china_ip_list/"
+TEMP_FILE_PATH="/home/china_ip_list/temp/"
+SURGE_PATH="/home/china_ip_list/Surge/"
+SSR_PATH="/home/china_ip_list/SSR/"
+ACL_PATH="/home/china_ip_list/ACL/"
+PCAP_DNSPROXY_PATH="/home/china_ip_list/Pcap_DNSProxy/"
+SCRIPT_PATH="/home/china_ip_list/Script"
 
 CurrentDate=$(date +%Y-%m-%d)
 
@@ -16,13 +16,13 @@ downloadOriginIPList() {
 	mkdir $TEMP_FILE_PATH
 	cd $TEMP_FILE_PATH
 
-	wget -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest >$TEMP_FILE_PATH'apnic.log' 2>&1
+	wget -e "https_proxy=http://127.0.0.1:8118" -O apnic https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest >$TEMP_FILE_PATH'apnic.log' 2>&1
 
-	wget -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt >$TEMP_FILE_PATH'ipip.log' 2>&1
+	wget -e "https_proxy=http://127.0.0.1:8118" -O ipip https://raw.githubusercontent.com/17mon/china_ip_list/master/china_ip_list.txt >$TEMP_FILE_PATH'ipip.log' 2>&1
 
 	while ((1)); do
-		apnicIsDownDone=$(cat apnic.log | grep "saved" | wc -l)
-		ipipIsDownDone=$(cat ipip.log | grep "saved" | wc -l)
+		apnicIsDownDone=$(cat apnic.log | grep -E "saved|已保存" | wc -l)
+		ipipIsDownDone=$(cat ipip.log | grep -E "saved|已保存" | wc -l)
 		if [ $apnicIsDownDone == 1 ] && [ $ipipIsDownDone == 1 ]; then
 			echo -e "ip files download done."
 			break
