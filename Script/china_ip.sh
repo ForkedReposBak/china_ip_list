@@ -13,6 +13,7 @@ CurrentDate=$(date +%Y-%m-%d)
 downloadOriginIPList() {
 	echo "exec downloadOriginIPList."
 
+	rm -rf $TEMP_FILE_PATH
 	mkdir $TEMP_FILE_PATH
 	cd $TEMP_FILE_PATH
 
